@@ -1,3 +1,4 @@
+```yaml
 workflows:
   ios-dylib-build:
     name: Build iOS Dylib (TurathGate)
@@ -14,22 +15,25 @@ workflows:
     scripts:
       - name: Verify and Build Dylib
         script: |
-          echo "فحص وجود الملفات..."
+          echo "فحص وجود الملفات داخل المجلد الحالي..."
           ls -la
           
-          # استخراج مسار الـ SDK الرسمي الخاص بالـ iPhone
+          # استخراج مسار الـ SDK الرسمي الخاص بالـ iPhone لنظام تشغيل Xcode الحالي
           SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
           
-          echo "بدء تجميع كود clang للمعماريات الحديثة..."
+          echo "بدء تجميع كود clang للمعماريات الحديثة مع ربط المكتبات الرسومية وتفادي أخطاء Linker..."
           clang -dynamiclib -isysroot "$SDK_PATH" \
                 -arch arm64 \
                 -framework Foundation \
                 -framework UIKit \
+                -framework CoreGraphics \
                 -install_name @executable_path/TurathGate.dylib \
                 TurathGate.m \
                 -o TurathGate.dylib
                 
-          echo "تأكيد نجاح العملية:"
+          echo "تأكيد نجاح عملية التجميع وبناء ملف الـ Dylib بنجاح:"
           ls -la TurathGate.dylib
     artifacts:
       - "*.dylib"
+
+```
