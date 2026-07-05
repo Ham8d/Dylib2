@@ -190,7 +190,6 @@ __attribute__((constructor)) static void initialize() {
     });
 }
 
----
 
 ### ملخص الخطوات المطلوبة منك الآن:
 1. اذهب لمستودعك على GitHub وافتح ملف `TurathGate.m`.
