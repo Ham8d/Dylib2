@@ -1,3 +1,4 @@
+
 workflows:
   ios-dylib-build:
     name: Build iOS Dylib (TurathGate)
@@ -14,11 +15,17 @@ workflows:
     scripts:
       - name: Verify and Build Dylib
         script: |
-          # تفعيل خيار إيقاف السكريبت فوراً عند حدوث أي خطأ أثناء التجميع
+          # تفعيل خيار إيقاف السكريبت فوراً عند حدوث أي خطأ
           set -e
 
           echo "فحص وجود الملفات داخل المجلد الحالي..."
           ls -la
+
+          echo "تنظيف وتصحيح ملف TurathGate.m من أي رموز زائدة في النهاية مثل ---..."
+          # هذا الأمر يقوم بحذف الأسطر التي تحتوي فقط على شرطات --- لتفادي خطأ التجميع
+          sed -i '' '/^---$/d' TurathGate.m
+          # كما يقوم بحذف الفراغات والشرطات الزائدة في نهاية الملف إن وجدت
+          sed -i '' -e :a -e '/^\n*$/{$d;N;ba' -e '}' TurathGate.m
           
           # استخراج مسار الـ SDK الرسمي الخاص بالـ iPhone لنظام تشغيل Xcode الحالي
           SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
