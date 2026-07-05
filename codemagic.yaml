@@ -3,39 +3,42 @@ workflows:
     name: Build iOS Dylib (TurathGate)
     max_build_duration: 10
     instance_type: mac_mini_m1
-
     environment:
       xcode: latest
-
     triggering:
       events:
         - push
       branch_patterns:
-        - pattern: main
+        - pattern: 'main'
           include: true
-
     scripts:
-      - name: Verify project files
+      - name: Verify and Build Dylib
         script: |
-          echo "Project files:"
+          # تفعيل خيار إيقاف السكريبت فوراً عند حدوث أي خطأ أثناء التجميع
+          set -e
+
+          echo "فحص وجود الملفات داخل المجلد الحالي..."
           ls -la
-
-      - name: Build
-        script: |
+          
+          # استخراج مسار الـ SDK الرسمي الخاص بالـ iPhone لنظام تشغيل Xcode الحالي
           SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+          
+          echo "بدء تجميع كود clang للمعماريات الحديثة مع ربط المكتبات الرسومية وتفادي أخطاء Linker..."
+          clang -dynamiclib -isysroot "$SDK_PATH" \
+                -arch arm64 \
+                -miphoneos-version-min=14.0 \
+                -fobjc-arc \
+                -framework Foundation \
+                -framework UIKit \
+                -framework CoreGraphics \
+                -install_name @executable_path/TurathGate.dylib \
+                TurathGate.m \
+                -o TurathGate.dylib
+                
+          echo "إجراء توقيع مؤقت (Ad-hoc Signing) للمكتبة لتعمل على أجهزة iOS بدون مشاكل أمنية..."
+          codesign -s - TurathGate.dylib
 
-          clang \
-            -dynamiclib \
-            -isysroot "$SDK_PATH" \
-            -arch arm64 \
-            -framework Foundation \
-            -framework UIKit \
-            -framework CoreGraphics \
-            -install_name @executable_path/TurathGate.dylib \
-            TurathGate.m \
-            -o TurathGate.dylib
-
+          echo "تأكيد نجاح عملية التجميع وبناء ملف الـ Dylib بنجاح:"
           ls -la TurathGate.dylib
-
     artifacts:
-      - TurathGate.dylib
+      - "*.dylib"
