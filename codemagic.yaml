@@ -1,0 +1,35 @@
+workflows:
+  ios-dylib-build:
+    name: Build iOS Dylib (TurathGate)
+    max_build_duration: 10
+    instance_type: mac_mini_m1
+    environment:
+      xcode: latest
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+    scripts:
+      - name: Verify and Build Dylib
+        script: |
+          echo "فحص وجود الملفات..."
+          ls -la
+          
+          # استخراج مسار الـ SDK الرسمي الخاص بالـ iPhone
+          SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+          
+          echo "بدء تجميع كود clang للمعماريات الحديثة..."
+          clang -dynamiclib -isysroot "$SDK_PATH" \
+                -arch arm64 \
+                -framework Foundation \
+                -framework UIKit \
+                -install_name @executable_path/TurathGate.dylib \
+                TurathGate.m \
+                -o TurathGate.dylib
+                
+          echo "تأكيد نجاح العملية:"
+          ls -la TurathGate.dylib
+    artifacts:
+      - "*.dylib"
